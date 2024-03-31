@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 import requests
 from datetime import datetime
 from utils.log import logger
-from utils import const
 import os
 from bot.bot import Bot
 from common.singleton import singleton
@@ -76,23 +75,28 @@ class WrestChannel(Channel):
         pass
 
     def handle_cite_message(self, raw_msg):
+        logger.info('handle_cite_message: %s', raw_msg)
+        msg = raw_msg.get('content', {}).get('msg') or {}
+        appmsg = msg.get('appmsg') or {}
+        refermsg = appmsg.get('refermsg') or {}
         xml_msg = (
-            raw_msg["content"]["content"]
+            refermsg.get('content', '')
             .replace("&amp;", "&")
             .replace("&lt;", "<")
             .replace("&gt;", ">")
         )
         soup = BeautifulSoup(xml_msg, "lxml")
         cooked_msg = {
-            "content": soup.select_one("title").text,
+            "type": appmsg.get('type'),
+            "content": appmsg.get('title', ''),
             "id": raw_msg["id"],
             "id1": raw_msg["content"]["id2"],
             "id2": "",
             "id3": "",
             "srvid": raw_msg["srvid"],
             "time": raw_msg["time"],
-            "type": raw_msg["type"],
             "wxid": raw_msg["content"]["id1"],
+            "refermsg": refermsg,
         }
         self.handle_message(cooked_msg)
 
@@ -100,6 +104,10 @@ class WrestChannel(Channel):
         # ignore message sent by self
         if raw_msg.get('is_self'):
             logger.info("message sent by self, ignore")
+            return
+        content = raw_msg.get('content')
+        if isinstance(content, dict):
+            logger.info('handle_message: %s', raw_msg)
             return
         msg = Message(raw_msg, self.personal_info)
         logger.info(f"message received: {msg}")
@@ -236,8 +244,7 @@ class WrestChannel(Channel):
         logger.info("[Websocket] disconnected %s", args)
 
     def on_error(self, ws, error):
-        etb = error.__traceback__
-        logger.error(f"[Websocket] Error: {etb}")
+        logger.exception(f"[Websocket] Error: {error}", exc_info=error)
 
     def get_personal_info(self):
         info = self.request_api('wcf/self_info') or {}
