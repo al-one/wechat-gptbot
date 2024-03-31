@@ -51,7 +51,7 @@ class ChatGPTBot:
             return Reply(ReplyType.IMAGE, image_url)
         except Exception as e:
             logger.error(f"[{self.name}] Create image failed: {e}")
-            return Reply(ReplyType.TEXT, "Image created failed")
+            return Reply(ReplyType.TEXT, f"Image created failed: {e}")
 
     def reply_text(self, session):
         try:

@@ -1,5 +1,6 @@
 from channel.wechat import WeChatChannel
-from config import load_config
+from channel.wrest import WrestChannel
+from config import load_config, conf
 from utils.log import logger
 from utils.print import color_print
 from plugins.manager import PluginManager
@@ -17,7 +18,7 @@ if __name__ == "__main__":
         PluginManager().load_plugins()
 
         # start wechat channel
-        WeChatChannel().startup()
+        WrestChannel().startup()
     except Exception as e:
         logger.error("App startup failed!")
         logger.exception(e)

@@ -1,4 +1,5 @@
 import json
+import yaml
 import os
 from utils.log import logger
 
@@ -7,13 +8,21 @@ config = {}
 
 def load_config():
     global config
+
+    config_yaml = "config.yaml"
     config_path = "config.json"
-    if not os.path.exists(config_path):
+
+    if os.path.exists(config_yaml):
+        with open(config_yaml, mode="r", encoding="utf-8") as fp:
+            config = yaml.safe_load(fp)
+
+    elif os.path.exists(config_path):
+        config_str = read_file(config_path)
+        config = json.loads(config_str)
+
+    else:
         raise Exception("Config file is not exist, please create config.json according to config.template.json")
 
-    config_str = read_file(config_path)
-    # deserialize json string to dict
-    config = json.loads(config_str)
     logger.info(f"Load config: {config}")
 
 

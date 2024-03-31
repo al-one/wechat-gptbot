@@ -1,6 +1,7 @@
 *.pyc
 .DS_Store
 __pycache__
+config.yaml
 config.json
 assets/*.png
 assets/*.mp4

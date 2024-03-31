@@ -1,0 +1,32 @@
+wechat_addr: 127.0.0.1
+wechat_port: 7600
+openai_api_base: ''
+openai_api_key: YOUR API SECRET KEY
+model: gpt-3.5-turbo
+role_desc: You are a helpful assistant.
+single_chat_prefix:
+  - bot
+  - '@bot'
+chat_group_session_independent: true
+use_azure_chatgpt: false
+azure_deployment_id: ''
+session_expired_duration: 3600
+max_tokens: 4000
+temperature: 0.9
+proxy: ''
+create_image_prefix:
+  - 画个
+  - 画一
+  - draw
+create_image_model: dall-e-3
+create_image_size: 1024x1024
+create_image_style: vivid
+create_image_quality: hd
+clear_current_session_command: '#clear session'
+clear_all_sessions_command: '#clear all sessions'
+query_key_command: '#query key'
+recent_days: 5
+plugins:
+  - name: tiktok
+    command: '#tiktok'
+openai_sensitive_id: ''
