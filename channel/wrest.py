@@ -56,6 +56,13 @@ class WrestChannel(Channel):
             'time': time.strftime("%Y-%m-%d %H:%M:%S"),
             **raw_msg,
         }
+        if rmid:
+            name = self.request_api('wcf/alias_in_chatroom', json={
+                'roomid': rmid,
+                'wxid': sdid,
+            })
+            if isinstance(name, str):
+                raw_msg['sender_name'] = name
         msg_type = raw_msg.get('type')
         handlers = {
             MessageType.AT_MSG.value: self.handle_message,
@@ -89,13 +96,14 @@ class WrestChannel(Channel):
         cooked_msg = {
             "type": appmsg.get('type'),
             "content": appmsg.get('title', ''),
-            "id": raw_msg["id"],
-            "id1": raw_msg["content"]["id2"],
-            "id2": "",
-            "id3": "",
-            "srvid": raw_msg["srvid"],
-            "time": raw_msg["time"],
-            "wxid": raw_msg["content"]["id1"],
+            "id": raw_msg.get('id'),
+            "id1": raw_msg.get('id1'),
+            "id2": refermsg.get('fromusr'),
+            "id3": refermsg.get('chatusr'),
+            "srvid": refermsg.get('svrid', ''),
+            "extra": raw_msg.get('extra', ''),
+            "time": raw_msg.get('time'),
+            "wxid": raw_msg.get('wxid'),
             "refermsg": refermsg,
         }
         self.handle_message(cooked_msg)
