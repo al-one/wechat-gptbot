@@ -6,6 +6,7 @@ from channel.message import Message
 from utils.log import logger
 from utils.const import MessageType
 from utils.gen import gen_id
+from lxml import etree
 
 
 def serialize_img(image_url: str) -> str:
@@ -49,3 +50,18 @@ def serialize_text(text: str, msg: Message) -> str:
         "ext": "null",
     }
     return json.dumps(msg)
+
+def xml_to_dict(xml, from_str=False):
+    if from_str:
+        xml = etree.fromstring(xml)
+    result = {}
+    for attr, value in xml.attrib.items():
+        result[attr] = value
+    children = list(xml)
+    if children:
+        result[xml.tag] = {}
+        for child in children:
+            result[xml.tag].update(xml_to_dict(child))
+    else:
+        result[xml.tag] = xml.text
+    return result

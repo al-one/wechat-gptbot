@@ -13,7 +13,7 @@ from utils.check import check_prefix, is_wx_account
 from common.reply import ReplyType, Reply
 from channel.message import Message
 from utils.const import MessageType
-from utils.serialize import serialize_video
+from utils.serialize import serialize_video, xml_to_dict
 from plugins.manager import PluginManager
 from common.context import ContextType, Context
 from plugins.event import EventType, Event
@@ -52,7 +52,7 @@ class WrestChannel(Channel):
             'wxid': wxid,
             'id1': sdid,
             'id2': '',
-            'sender_name': self.contacts.get(sdid, {}).get('name', ''),
+            'sender_name': self.contacts.get(sdid, {}).get('name', sdid),
             'group_name': self.contacts.get(rmid, {}).get('name', ''),
             'time': time.strftime("%Y-%m-%d %H:%M:%S"),
             **raw_msg,
@@ -62,7 +62,7 @@ class WrestChannel(Channel):
                 'roomid': rmid,
                 'wxid': sdid,
             })
-            if isinstance(name, str):
+            if name and isinstance(name, str):
                 raw_msg['sender_name'] = name
         msg_type = raw_msg.get('type')
         handlers = {
@@ -83,17 +83,13 @@ class WrestChannel(Channel):
         pass
 
     def handle_cite_message(self, raw_msg):
-        logger.info('handle_cite_message: %s', raw_msg)
         msg = raw_msg.get('content', {}).get('msg') or {}
         appmsg = msg.get('appmsg') or {}
         refermsg = appmsg.get('refermsg') or {}
-        xml_msg = (
-            refermsg.get('content', '')
-            .replace("&amp;", "&")
-            .replace("&lt;", "<")
-            .replace("&gt;", ">")
-        )
-        soup = BeautifulSoup(xml_msg, "lxml")
+        content = refermsg.get('content', '')
+        if isinstance(content, str) and content.startswith('<?xml'):
+            refermsg['content'] = xml_to_dict(content, True)
+        logger.info('handle_cite_message: %s', raw_msg)
         cooked_msg = {
             "type": appmsg.get('type'),
             "content": appmsg.get('title', ''),
@@ -105,6 +101,7 @@ class WrestChannel(Channel):
             "extra": raw_msg.get('extra', ''),
             "time": raw_msg.get('time'),
             "wxid": raw_msg.get('wxid'),
+            "sender_name": raw_msg.get('sender_name'),
             "refermsg": refermsg,
         }
         self.handle_message(cooked_msg)
