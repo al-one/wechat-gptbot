@@ -13,6 +13,7 @@ from utils.check import check_prefix, is_wx_account
 from common.reply import ReplyType, Reply
 from channel.message import Message
 from utils.const import MessageType
+from utils.serialize import serialize_video
 from plugins.manager import PluginManager
 from common.context import ContextType, Context
 from plugins.event import EventType, Event
@@ -234,10 +235,12 @@ class WrestChannel(Channel):
                 'path': reply.content,
             })
         elif reply.type == ReplyType.VIDEO:
-            sep = '&' if '?' in reply.content else '?'
+            path = f'{reply.content}'
+            if '://' in path and '.mp4' not in path:
+                path = serialize_video(path)
             self.request_api('wcf/send_file', json={
                 'receiver': wx_id,
-                'path': f'{reply.content}{sep}_=video.mp4',
+                'path': path,
             })
         else:
             self.request_api('wcf/send_txt', json={
