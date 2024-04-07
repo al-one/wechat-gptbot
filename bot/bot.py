@@ -1,4 +1,3 @@
-import litellm
 from common.context import Context
 from config import conf
 from common.singleton import singleton
@@ -15,7 +14,7 @@ class Bot:
 
             self.bot = AzureChatGPTBot()
 
-        elif model in litellm.open_ai_chat_completion_models:
+        elif not conf().get('use_litellm'):
             from bot.chatgpt import ChatGPTBot
 
             self.bot = ChatGPTBot()
