@@ -1,7 +1,6 @@
 import json
 import warnings
 import websocket
-from bs4 import BeautifulSoup
 import requests
 from datetime import datetime
 from utils.log import logger
@@ -13,6 +12,7 @@ from utils.check import check_prefix, is_wx_account
 from common.reply import ReplyType, Reply
 from channel.message import Message
 from utils.const import MessageType
+from utils.proto import decode_paths
 from utils.serialize import serialize_video, xml_to_dict
 from plugins.manager import PluginManager
 from common.context import ContextType, Context
@@ -87,8 +87,20 @@ class WrestChannel(Channel):
         appmsg = msg.get('appmsg') or {}
         refermsg = appmsg.get('refermsg') or {}
         content = refermsg.get('content', '')
-        if isinstance(content, str) and content.startswith('<?xml'):
+        if isinstance(content, str) and '<msg' in content:
             refermsg['content'] = xml_to_dict(content, True)
+        if refermsg.get('type') == str(MessageType.RECV_PIC_MSG.value):
+            svrid = refermsg.get('svrid', 0)
+            db_res = self.request_api('wcf/db_query_sql', json={
+                'db': 'MSG0.db',
+                'sql': f'select BytesExtra from MSG where MsgSvrID = {svrid}',
+            })
+            BytesExtra = db_res[0].get('BytesExtra') if db_res else None
+            if BytesExtra:
+                paths = decode_paths(BytesExtra, self.personal_info.get('wx_id')) or {}
+                refermsg['paths'] = paths
+                if path := paths.get('image', ''):
+                    refermsg['extra'] = self.home_path(path)
         logger.info('handle_cite_message: %s', raw_msg)
         cooked_msg = {
             "type": appmsg.get('type'),
@@ -284,3 +296,9 @@ class WrestChannel(Channel):
             }
             logger.warning('Request error: %s', [api, dat])
         return dat.get('Payload', dat)
+
+    def home_path(self, append=None):
+        path = self.personal_info.get('home', '').replace('\\', '/')
+        if append:
+            path += f'/{append}'
+        return path
