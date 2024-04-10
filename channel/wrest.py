@@ -123,10 +123,6 @@ class WrestChannel(Channel):
         if raw_msg.get('is_self'):
             logger.info("message sent by self, ignore")
             return
-        content = raw_msg.get('content')
-        if isinstance(content, dict):
-            logger.info('handle_message: %s', raw_msg)
-            return
         msg = Message(raw_msg, self.personal_info)
         logger.info(f"message received: {msg}")
         e = PluginManager().emit(
@@ -252,9 +248,15 @@ class WrestChannel(Channel):
                 'path': path,
             })
         else:
+            text = reply.content
+            aters = []
+            if msg.room_id and msg.sender_name:
+                text = f'@{msg.sender_name} {text}'
+                aters.append(msg.sender_id)
             self.request_api('wcf/send_txt', json={
                 'receiver': wx_id,
-                'msg': reply.content,
+                'msg': text,
+                'aters': aters,
             })
 
     def on_open(self, ws):
