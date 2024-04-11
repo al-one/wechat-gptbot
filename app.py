@@ -18,7 +18,11 @@ if __name__ == "__main__":
         PluginManager().load_plugins()
 
         # start wechat channel
-        WrestChannel().startup()
+        wechat_channel = conf().get('wechat_channel', 'wrest')
+        if wechat_channel == 'wrest':
+            WrestChannel().startup()
+        else:
+            WeChatChannel().startup()
     except Exception as e:
         logger.error("App startup failed!")
         logger.exception(e)

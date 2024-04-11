@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import IntEnum
 
 # server
 IP = "127.0.0.1"
@@ -9,7 +9,7 @@ SERVER = f"ws://{IP}:{PORT}"
 SUCCESS = "SUCCSESSED"
 
 
-class MessageType(Enum):
+class MessageType(IntEnum):
     RECV_TXT_MSG = 1
     RECV_PIC_MSG = 3
     RECV_FILE_MSG = 6

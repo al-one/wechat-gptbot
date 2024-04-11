@@ -65,3 +65,18 @@ def xml_to_dict(xml, from_str=False):
     else:
         result[xml.tag] = xml.text
     return result
+
+def get_value(obj, key, def_value=None):
+    keys = f'{key}'.split('.')
+    result = obj
+    for k in keys:
+        if result is None:
+            return None
+        if isinstance(result, dict):
+            result = result.get(k, def_value)
+        elif isinstance(result, (list, tuple)):
+            try:
+                result = result[int(k)]
+            except Exception:
+                result = def_value
+    return result

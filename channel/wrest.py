@@ -13,7 +13,7 @@ from common.reply import ReplyType, Reply
 from channel.message import Message
 from utils.const import MessageType
 from utils.proto import decode_paths
-from utils.serialize import serialize_video, xml_to_dict
+from utils.serialize import serialize_video, xml_to_dict, get_value
 from plugins.manager import PluginManager
 from common.context import ContextType, Context
 from plugins.event import EventType, Event
@@ -66,13 +66,14 @@ class WrestChannel(Channel):
                 raw_msg['sender_name'] = name
         msg_type = raw_msg.get('type')
         handlers = {
-            MessageType.AT_MSG.value: self.handle_message,
-            MessageType.TXT_MSG.value: self.handle_message,
-            MessageType.PIC_MSG.value: self.handle_message,
-            MessageType.RECV_PIC_MSG.value: self.handle_message,
-            MessageType.RECV_TXT_MSG.value: self.handle_message,
-            MessageType.RECV_TXT_CITE_MSG.value: self.handle_cite_message,
-            MessageType.HEART_BEAT.value: self.noop,
+            MessageType.AT_MSG: self.handle_message,
+            MessageType.TXT_MSG: self.handle_message,
+            MessageType.PIC_MSG: self.handle_message,
+            MessageType.RECV_PIC_MSG: self.handle_message,
+            MessageType.RECV_TXT_MSG: self.handle_message,
+            MessageType.RECV_FILE_MSG: self.handle_message,
+            MessageType.RECV_TXT_CITE_MSG: self.handle_cite_message,
+            MessageType.HEART_BEAT: self.noop,
         }
         if handler := handlers.get(msg_type):
             handler(raw_msg)
@@ -89,20 +90,6 @@ class WrestChannel(Channel):
         content = refermsg.get('content', '')
         if isinstance(content, str) and '<msg' in content:
             refermsg['content'] = xml_to_dict(content, True)
-        ref_type = int(refermsg.get('type', 0))
-        if ref_type in [MessageType.RECV_PIC_MSG.value, MessageType.RECV_FILE_MSG.value]:
-            svrid = refermsg.get('svrid', 0)
-            db_res = self.request_api('wcf/db_query_sql', json={
-                'db': 'MSG0.db',
-                'sql': f'select BytesExtra from MSG where MsgSvrID = {svrid}',
-            })
-            BytesExtra = db_res[0].get('BytesExtra') if db_res else None
-            if BytesExtra:
-                paths = decode_paths(BytesExtra, self.personal_info.get('wx_id')) or {}
-                logger.info('decode_paths: %s', paths)
-                refermsg['paths'] = paths
-                if path := paths.get('image', paths.get('file', '')):
-                    refermsg['extra'] = self.home_path(path)
         logger.info('handle_cite_message: %s', raw_msg)
         cooked_msg = {
             "type": appmsg.get('type'),
@@ -119,6 +106,38 @@ class WrestChannel(Channel):
             "refermsg": refermsg,
         }
         self.handle_message(cooked_msg)
+
+    def get_refer_extra(self, refermsg: dict):
+        svrid = refermsg.get('svrid', 0)
+        ref_type = int(get_value(refermsg, 'content.msg.appmsg.type', refermsg.get('type', 0)))
+        db_res = self.request_api('wcf/db_query_sql', json={
+            'db': 'MSG0.db',
+            'sql': f'select BytesExtra from MSG where MsgSvrID = {svrid}',
+        })
+        BytesExtra = db_res[0].get('BytesExtra') if db_res else None
+        if BytesExtra:
+            paths = decode_paths(BytesExtra, self.personal_info.get('wx_id')) or {}
+            logger.info('decode_paths: %s', paths)
+            refermsg['paths'] = paths
+            path = paths.get(0, '')
+            if ref_type == MessageType.RECV_PIC_MSG:
+                path = paths.get('image', path)
+            if ref_type == MessageType.RECV_FILE_MSG:
+                path = paths.get('file', path)
+            if path:
+                refermsg['extra'] = self.home_path(path)
+        return refermsg.get('extra')
+
+    def get_refer_image(self, refermsg: dict, save_dir):
+        if not (extra := self.get_refer_extra(refermsg)):
+            return None
+        res = self.request_api('wcf/download_image', json={
+            'extra': extra,
+            'msgid': refermsg.get('svrid', 0),
+            'dir': save_dir,
+            'timeout': 0,
+        }) or {}
+        return res.get('result')
 
     def handle_message(self, raw_msg):
         # ignore message sent by self

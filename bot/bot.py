@@ -14,7 +14,7 @@ class Bot:
 
             self.bot = AzureChatGPTBot()
 
-        elif not conf().get('use_litellm'):
+        elif not conf().get('use_litellm') or model == 'gpt-3.5-turbo':
             from bot.chatgpt import ChatGPTBot
 
             self.bot = ChatGPTBot()
