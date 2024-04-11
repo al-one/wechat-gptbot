@@ -20,7 +20,9 @@ class Message(BaseModel):
         self._raw_msg = msg
         self.receiver_id = info["wx_id"]
         self.receiver_name = info["wx_name"]
-        self.content = msg["content"].strip()
+        self.content = msg["content"]
+        if isinstance(self.content, str):
+            self.content = self.content.strip()
         self.type = msg["type"]
         self.create_time = msg["time"]
         if "@chatroom" in msg["wxid"]:

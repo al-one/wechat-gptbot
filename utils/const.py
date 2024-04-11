@@ -12,6 +12,7 @@ SUCCESS = "SUCCSESSED"
 class MessageType(Enum):
     RECV_TXT_MSG = 1
     RECV_PIC_MSG = 3
+    RECV_FILE_MSG = 6
     RECV_TXT_CITE_MSG = 49
     PIC_MSG = 500
     AT_MSG = 550

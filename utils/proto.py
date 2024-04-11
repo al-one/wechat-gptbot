@@ -17,7 +17,10 @@ def decode_paths(str, wxid=None):
                         value = value[pos:]
                 value = value.replace('\\', '/').replace("'", '')
                 paths[index] = value
-                if mat := re.search(r'MsgAttach/\w+/(\w+)', value):
+                mat = re.search(r'MsgAttach/\w+/(\w+)', value)
+                if not mat:
+                    mat = re.search(r'FileStorage/(\w+)/\d+', value)
+                if mat:
                     type = mat.group(1).lower()
                     paths[type] = value
                 index += 1

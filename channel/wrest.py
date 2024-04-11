@@ -89,7 +89,8 @@ class WrestChannel(Channel):
         content = refermsg.get('content', '')
         if isinstance(content, str) and '<msg' in content:
             refermsg['content'] = xml_to_dict(content, True)
-        if refermsg.get('type') == str(MessageType.RECV_PIC_MSG.value):
+        ref_type = int(refermsg.get('type', 0))
+        if ref_type in [MessageType.RECV_PIC_MSG.value, MessageType.RECV_FILE_MSG.value]:
             svrid = refermsg.get('svrid', 0)
             db_res = self.request_api('wcf/db_query_sql', json={
                 'db': 'MSG0.db',
@@ -98,8 +99,9 @@ class WrestChannel(Channel):
             BytesExtra = db_res[0].get('BytesExtra') if db_res else None
             if BytesExtra:
                 paths = decode_paths(BytesExtra, self.personal_info.get('wx_id')) or {}
+                logger.info('decode_paths: %s', paths)
                 refermsg['paths'] = paths
-                if path := paths.get('image', ''):
+                if path := paths.get('image', paths.get('file', '')):
                     refermsg['extra'] = self.home_path(path)
         logger.info('handle_cite_message: %s', raw_msg)
         cooked_msg = {
@@ -300,7 +302,7 @@ class WrestChannel(Channel):
         return dat.get('Payload', dat)
 
     def home_path(self, append=None):
-        path = self.personal_info.get('home', '').replace('\\', '/')
+        path = self.personal_info.get('home', '').replace('\\', '/').rstrip('/')
         if append:
             path += f'/{append}'
         return path
