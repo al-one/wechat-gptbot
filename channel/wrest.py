@@ -228,6 +228,8 @@ class WrestChannel(Channel):
         if e1.is_bypass:
             return self.send(e1.reply, e1.message)
 
+        if not isinstance(self.content, str):
+            return
         rawReply = Bot().reply(e1.context)
 
         e2 = PluginManager().emit(
