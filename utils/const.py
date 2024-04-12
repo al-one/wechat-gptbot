@@ -9,9 +9,12 @@ SERVER = f"ws://{IP}:{PORT}"
 SUCCESS = "SUCCSESSED"
 
 
+# https://github.com/opentdp/wrest-chat/blob/8935382142ee590e255717fda1f2ccae851ac4af/wclient/README.md?plain=1#L179
 class MessageType(IntEnum):
     RECV_TXT_MSG = 1
     RECV_PIC_MSG = 3
+    RECV_LINK_MSG = 4
+    RECV_VLINK_MSG = 5
     RECV_FILE_MSG = 6
     RECV_TXT_CITE_MSG = 49
     PIC_MSG = 500
