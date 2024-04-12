@@ -54,7 +54,7 @@ class Message(BaseModel):
             return None
         return self.channel.get_refer_extra(self.refermsg)
 
-    def get_refer_image(self, save_dir):
+    def get_refer_image(self, save_dir=None):
         if not self.refermsg:
             return None
         if not self.channel:

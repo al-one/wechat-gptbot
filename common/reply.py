@@ -6,6 +6,7 @@ class ReplyType(Enum):
     TEXT = 1
     IMAGE = 2
     VIDEO = 3
+    OFILE = 4
 
     def __str__(self):
         return self.name

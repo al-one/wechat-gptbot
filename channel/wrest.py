@@ -90,6 +90,7 @@ class WrestChannel(Channel):
         content = refermsg.get('content', '')
         if isinstance(content, str) and '<msg' in content:
             refermsg['content'] = xml_to_dict(content, True)
+        raw_msg['image'] = self.get_refer_image(refermsg)
         logger.info('handle_cite_message: %s', raw_msg)
         cooked_msg = {
             "type": appmsg.get('type'),
@@ -128,16 +129,18 @@ class WrestChannel(Channel):
                 refermsg['extra'] = self.home_path(path)
         return refermsg.get('extra')
 
-    def get_refer_image(self, refermsg: dict, save_dir):
+    def get_refer_image(self, refermsg: dict, save_dir=None):
         if not (extra := self.get_refer_extra(refermsg)):
             return None
+        if not save_dir:
+            save_dir = os.path.dirname(os.path.abspath(__file__)) + '/../assets/'
         res = self.request_api('wcf/download_image', json={
             'extra': extra,
-            'msgid': refermsg.get('svrid', 0),
+            'msgid': int(refermsg.get('svrid', 0)),
             'dir': save_dir,
             'timeout': 0,
         }) or {}
-        return res.get('result')
+        return res#.get('result')
 
     def handle_message(self, raw_msg):
         # ignore message sent by self
@@ -267,6 +270,11 @@ class WrestChannel(Channel):
             self.request_api('wcf/send_file', json={
                 'receiver': wx_id,
                 'path': path,
+            })
+        elif reply.type == ReplyType.OFILE:
+            self.request_api('wcf/send_file', json={
+                'receiver': wx_id,
+                'path': reply.content,
             })
         else:
             text = reply.content
