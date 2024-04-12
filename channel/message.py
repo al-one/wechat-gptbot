@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Any
 from utils.api import get_sender_name
 
 
@@ -14,6 +15,7 @@ class Message(BaseModel):
     is_at: bool = False
     create_time: str = None
     _raw_msg: dict = None
+    channel: Any = None
 
     def __init__(self, msg, info, channel=None):
         super().__init__()
@@ -25,7 +27,6 @@ class Message(BaseModel):
         if isinstance(self.content, str):
             self.content = self.content.strip()
         self.type = msg["type"]
-        self.refermsg = msg.get('refermsg') or {}
         self.create_time = msg["time"]
         if "@chatroom" in msg["wxid"]:
             self.is_group = True
@@ -41,6 +42,10 @@ class Message(BaseModel):
 
     def __str__(self):
         return f"Message(room_id={self.room_id}, sender_id={self.sender_id}, sender_name={self.sender_name}, receiver_id={self.receiver_id}, receiver_name={self.receiver_name}, content={self.content}, type={self.type}, is_group={self.is_group}, create_time={self.create_time}, is_at={self.is_at})"
+
+    @property
+    def refermsg(self):
+        return self._raw_msg.get('refermsg') or {}
 
     def get_refer_extra(self):
         if not self.refermsg:
