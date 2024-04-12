@@ -87,10 +87,12 @@ class WrestChannel(Channel):
         msg = raw_msg.get('content', {}).get('msg') or {}
         appmsg = msg.get('appmsg') or {}
         refermsg = appmsg.get('refermsg') or {}
+        refertype = int(refermsg.get('type', 0))
         content = refermsg.get('content', '')
-        if isinstance(content, str) and '<msg' in content:
+        if refertype == MessageType.RECV_TXT_MSG:
+            pass
+        elif isinstance(content, str) and '<msg' in content:
             refermsg['content'] = xml_to_dict(content, True)
-        raw_msg['image'] = self.get_refer_image(refermsg)
         logger.info('handle_cite_message: %s', raw_msg)
         cooked_msg = {
             "type": appmsg.get('type'),
@@ -134,13 +136,16 @@ class WrestChannel(Channel):
             return None
         if not save_dir:
             save_dir = os.path.dirname(os.path.abspath(__file__)) + '/../assets/'
-        res = self.request_api('wcf/download_image', json={
+        dat = {
             'extra': extra,
             'msgid': int(refermsg.get('svrid', 0)),
             'dir': save_dir,
             'timeout': 0,
-        }) or {}
-        return res#.get('result')
+        }
+        res = self.request_api('wcf/download_image', json=dat) or {}
+        if 'error' in res:
+            logger.error('Got refer image failed: %s', [dat, res])
+        return res.get('result')
 
     def handle_message(self, raw_msg):
         # ignore message sent by self

@@ -72,6 +72,8 @@ def get_value(obj, key, def_value=None):
     for k in keys:
         if result is None:
             return None
+        if isinstance(result, (str, int)):
+            return def_value
         if isinstance(result, dict):
             result = result.get(k, def_value)
         elif isinstance(result, (list, tuple)):
