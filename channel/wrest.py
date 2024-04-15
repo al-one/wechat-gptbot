@@ -73,15 +73,11 @@ class WrestChannel(Channel):
             MessageType.RECV_TXT_MSG: self.handle_message,
             MessageType.RECV_FILE_MSG: self.handle_message,
             MessageType.RECV_TXT_CITE_MSG: self.handle_cite_message,
-            MessageType.HEART_BEAT: self.noop,
         }
         if handler := handlers.get(msg_type):
             handler(raw_msg)
         else:
             logger.info('on_message: %s %s', msg_type, raw_msg)
-
-    def noop(self, raw_msg):
-        pass
 
     def handle_cite_message(self, raw_msg):
         msg = raw_msg.get('content', {}).get('msg') or {}
