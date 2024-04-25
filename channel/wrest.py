@@ -91,7 +91,7 @@ class WrestChannel(Channel):
             refermsg['content'] = xml_to_dict(content, True)
         logger.info('handle_cite_message: %s', raw_msg)
         cooked_msg = {
-            "type": appmsg.get('type'),
+            "type": int(appmsg.get('type', 0)),
             "content": appmsg.get('title', ''),
             "id": raw_msg.get('id'),
             "id1": raw_msg.get('id1'),
@@ -155,6 +155,12 @@ class WrestChannel(Channel):
         )
         if e.is_bypass:
             return self.send(e.reply, e.message)
+
+        if msg.type not in [MessageType.RECV_TXT_MSG, MessageType.RECV_CITE_TXT]:
+            return
+        if not isinstance(msg.content, str):
+            return
+
         if e.message.is_group:
             self.handle_group(e.message)
         else:
@@ -224,10 +230,7 @@ class WrestChannel(Channel):
         if e1.is_bypass:
             return self.send(e1.reply, e1.message)
 
-        if not isinstance(msg.content, str):
-            return
         rawReply = Bot().reply(e1.context)
-
         e2 = PluginManager().emit(
             Event(
                 EventType.WILL_DECORATE_REPLY,
