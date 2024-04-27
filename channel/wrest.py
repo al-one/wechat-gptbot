@@ -148,7 +148,7 @@ class WrestChannel(Channel):
         if raw_msg.get('is_self'):
             logger.info("message sent by self, ignore")
             return
-        msg = Message(raw_msg, self.personal_info)
+        msg = Message(raw_msg, self.personal_info, self)
         logger.info(f"message received: {msg}")
         e = PluginManager().emit(
             Event(EventType.DID_RECEIVE_MESSAGE, {"channel": self, "message": msg})

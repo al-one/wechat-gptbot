@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Any
 from utils.api import get_sender_name
+from common.reply import Reply, ReplyType
 
 
 class Message(BaseModel):
@@ -42,6 +43,13 @@ class Message(BaseModel):
 
     def __str__(self):
         return f"Message(room_id={self.room_id}, sender_id={self.sender_id}, sender_name={self.sender_name}, receiver_id={self.receiver_id}, receiver_name={self.receiver_name}, content={self.content}, type={self.type}, is_group={self.is_group}, create_time={self.create_time}, is_at={self.is_at})"
+
+    def reply(self, reply):
+        if not self.channel:
+            return False
+        if not isinstance(reply, Reply):
+            reply = Reply(ReplyType.TEXT, str(reply))
+        return self.channel.send(reply, self)
 
     @property
     def refermsg(self):
