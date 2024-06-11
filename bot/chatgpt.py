@@ -54,6 +54,7 @@ class ChatGPTBot:
             return Reply(ReplyType.TEXT, f"Image created failed: {e}")
 
     def reply_text(self, session):
+        response = None
         try:
             response = openai.ChatCompletion.create(
                 messages=session,
@@ -70,7 +71,7 @@ class ChatGPTBot:
                 "content": choice.get('message', {}).get('content'),
             }
         except Exception as e:
-            result = {"completion_tokens": 0, "content": "Please ask me again"}
+            result = {"completion_tokens": 0, f"content": "Error: {e}"}
             if isinstance(e, openai.error.RateLimitError):
                 logger.warn(f"[{self.name}] RateLimitError: {e}")
                 result["content"] = "Ask too frequently, please try again in 20s"
@@ -85,5 +86,5 @@ class ChatGPTBot:
             elif isinstance(e, openai.error.APIError):
                 logger.warn(f"[{self.name}] APIError: {e}")
             else:
-                logger.exception(f"[{self.name}] Exception: {e}")
+                logger.exception(f"[{self.name}] Exception: {e}, Response: {response}")
         return result
