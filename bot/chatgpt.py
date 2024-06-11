@@ -71,7 +71,7 @@ class ChatGPTBot:
                 "content": choice.get('message', {}).get('content'),
             }
         except Exception as e:
-            result = {"completion_tokens": 0, f"content": "Error: {e}"}
+            result = {"completion_tokens": 0, "content": "Please ask me again", "exception": e}
             if isinstance(e, openai.error.RateLimitError):
                 logger.warn(f"[{self.name}] RateLimitError: {e}")
                 result["content"] = "Ask too frequently, please try again in 20s"
