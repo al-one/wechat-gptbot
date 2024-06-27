@@ -32,3 +32,4 @@ class MessageType(IntEnum):
     DEBUG_SWITCH = 6000
     DESTROY_ALL = 9999
     JOIN_ROOM = 10000
+    REVOKE_MSG = 10002

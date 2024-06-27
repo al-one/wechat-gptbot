@@ -69,6 +69,7 @@ class WrestChannel(Channel):
             MessageType.AT_MSG: self.handle_message,
             MessageType.TXT_MSG: self.handle_message,
             MessageType.PIC_MSG: self.handle_message,
+            MessageType.REVOKE_MSG: self.handle_message,
             MessageType.RECV_PIC_MSG: self.handle_message,
             MessageType.RECV_TXT_MSG: self.handle_message,
             MessageType.RECV_FILE_MSG: self.handle_message,
