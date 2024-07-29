@@ -89,8 +89,11 @@ class WrestChannel(Channel):
         if refertype == MessageType.RECV_TXT_MSG:
             pass
         elif isinstance(content, str) and '<msg' in content:
-            refermsg['content'] = xml_to_dict(content, True)
-        logger.info('handle_cite_message: %s', raw_msg)
+            try:
+                refermsg['content'] = xml_to_dict(content, True)
+                logger.info('handle_cite_message: %s', raw_msg)
+            except:
+                logger.error('handle_cite_message error: %s', raw_msg)
         cooked_msg = {
             "type": int(appmsg.get('type', 0)),
             "content": appmsg.get('title', ''),
