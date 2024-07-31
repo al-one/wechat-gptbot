@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Any
+from utils.const import MessageType
 from utils.api import get_sender_name
 from common.reply import Reply, ReplyType
 
@@ -54,6 +55,14 @@ class Message(BaseModel):
     @property
     def refermsg(self):
         return self._raw_msg.get('refermsg') or {}
+
+    def get_refer_text(self):
+        if not self.refermsg:
+            return None
+        type = int(self.refermsg.get('type', 0))
+        if type != MessageType.RECV_TXT_MSG:
+            return None
+        return self.refermsg.get('content')
 
     def get_refer_extra(self):
         if not self.refermsg:
