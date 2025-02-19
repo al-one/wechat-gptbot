@@ -30,12 +30,13 @@ class ChatGPTBot:
             session_id = context.session_id
             session = Session.build_session_query(context)
             response = self.reply_text(session)
-            logger.info(f"[{self.name}] Response={response['content']}")
-            if response["completion_tokens"] > 0:
+            content = response.get('content', '')
+            logger.info(f"[{self.name}] Response={content or response}")
+            if content:
                 Session.save_session(
-                    response["content"], session_id, response["total_tokens"]
+                    content, session_id, response.get('total_tokens', 0)
                 )
-            return Reply(ReplyType.TEXT, response["content"])
+            return Reply(ReplyType.TEXT, content)
 
     def reply_img(self, query) -> Reply:
         create_image_size = conf().get("create_image_size", "512x512")
