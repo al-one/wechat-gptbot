@@ -66,9 +66,9 @@ class ChatGPTBot:
             usage = response.get('usage') or {}
             choice = response.choices[0] if response.choices else {}
             return {
-                "total_tokens": usage.get('total_tokens'),
-                "completion_tokens": usage.get('completion_tokens'),
-                "content": choice.get('message', {}).get('content'),
+                "total_tokens": usage.get('total_tokens', 0),
+                "completion_tokens": usage.get('completion_tokens', 0),
+                "content": choice.get('message', {}).get('content', ''),
             }
         except Exception as e:
             result = {"completion_tokens": 0, "content": "Please ask me again", "exception": e}
