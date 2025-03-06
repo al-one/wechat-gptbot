@@ -234,7 +234,20 @@ class WrestChannel(Channel):
         if e1.is_bypass:
             return self.send(e1.reply, e1.message)
 
-        rawReply = Bot().reply(e1.context)
+        bot = Bot()
+        gpt = bot.bot
+        if hasattr(gpt, "args"):
+            gpt.args.update({
+                "extra_body": {
+                    "variables": {
+                        "channel": "wrest",
+                        "from_id": msg.room_id or msg.sender_id,
+                        "room_id": msg.room_id,
+                        "user_id": msg.sender_id,
+                    },
+                },
+            })
+        rawReply = bot.reply(e1.context)
         e2 = PluginManager().emit(
             Event(
                 EventType.WILL_DECORATE_REPLY,
